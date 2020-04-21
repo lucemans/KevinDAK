@@ -1,4 +1,6 @@
 #!/bin/sh
 
-echo "Hello World!"
-echo "by Lucemans"
+clear
+echo "=========="
+echo "KevinDAK Installer by Lucemans"
+echo "=========="
