@@ -31,24 +31,69 @@ dialog --title "KevinDAK Installer" --msgbox "Welcome to the KevinDAK DAKBoard i
 
 cmd=(dialog --ok-label "Lets do this!" --cancel-label "Ive changed my mind" --stdout --checklist "Here is a list of actions this script is going to do, if for some reason you dont want to perform a certain step, use <space> to disable it:" 0 0 0  1 "Install Chromium" on 2 "Remove Cursor using unclutter" on  3 "Setup Startup script (rc.local)" on  4 "Remove Voltage Warning Overlay" on)
 
-exitstatus=$("${cmd[@]}")
+exitstatus=" "
+exitstatus+=$("${cmd[@]}")
+exitstatus+=" "
 
-echo $exitstatus
+if [[ $exitstatus = "  " ]]; then
+	clear
+	echo "[KevinDAK] Installation aborted."
+	exit 0
+fi
+clear
 
 # chromium browser
+if [[ $exitstatus == *" 1 "* ]]; then
+	echo "[KevinDAK] Installing Chromium Browser"
+	apt install chromium-browser
+else
+	echo "[KevinDAK] Skipping Chromium install"
+fi
 
-
-# cursor removal
+if [[ $exitstatus == *" 2 "* ]]; then
+	echo "[KevinDAK] Installing Unclutter (This feature might not work to its fullest extend)"
+	apt install unclutter
+else
+	echo "[KevinDAK] Skipping Unclutter install"
+fi
 
 cmd=(dialog --stdout --title "Enter the WEB-URL" --inputbox "URL you want to connect to:" 0 0)
 url=$("${cmd[@]}")
 clear
-echo $url
-# startup script
+
+echo "#!/bin/bash" &> /root/kevindak_start.sh
+echo "/usr/bin/chromium-browser --no-first-run --window-size=1920,1080 --noerrdialogs --start-fullscreen --start-maximized --disable-notifications --disable-infobars --kiosk --incognito "$url >> /root/kevindak_start.sh
+
+if [[ $exitstatus == *" 3 "* ]]; then
+	echo "[KevinDAK] Setting up install script reference (rc.local)"
+	rcfile=$(cat /etc/rc.local)
+	if [[ $rcfile == *"/bin/sh /root/kevindak_start.sh"* ]]; then
+		echo "[KevinDAK] Already setup startup script found, not interfering"
+	else
+		tail -n 1 "/etc/rc.local" | wc -c | xargs -I {} truncate "/etc/rc.local" -s -{}
+		rcfile=$(cat /etc/rc.local)
+		while [[ $rcfile =~ .*exit\s0[\w\s]*$ ]]; do
+			tail -n 1 "/etc/rc.local" | wc -c | xargs -I {} truncate "/etc/rc.local" -s -{}
+			rcfile=$(cat /etc/rc.local)
+		done
+		echo "/bin/sh /root/kevindak_start.sh" >> /etc/rc.local
+		echo "exit 0" >> /etc/rc.local
+	fi
+else
+	echo "[KevinDAK] Skipping Autoboot Install script (rc.local)"
+fi
+
+if [[ $exitstatus == *" 4 "* ]]; then
+	echo "[KevinDAK] Disabling Voltage Warning"
+
+	settingsFile=$(cat /boot/config.txt)
+        if [[ $settingsFile == *"avoid_warnings="* ]]; then
+                echo "[KevinDAK] Option AVOID_WARNINGS is already specified"
+        else
+                echo "avoid_warnings=1" >> /boot/config.txt
+        fi
 
 
-
-# voltage warning
-
-
-# rc.local setup
+else
+	echo "[KevinDAK] Skipping Voltage Warning Removal"
+fi
