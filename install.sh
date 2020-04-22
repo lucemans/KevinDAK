@@ -66,6 +66,7 @@ mkdir kevin
 chmod 777 /kevin
 
 echo "#!/bin/bash" &> /kevin/kevindak_start.sh
+echo "xset s off -dpms" >> /kevin/kevindak_start.sh
 echo "/usr/bin/chromium-browser --no-first-run --window-size=1920,1080 --noerrdialogs --start-fullscreen --start-maximized --disable-notifications --disable-infobars --kiosk --incognito "$url >> /kevin/kevindak_start.sh
 chmod 777 /kevin/kevindak_start.sh
 
@@ -108,4 +109,16 @@ if [[ $exitstatus == *" 4 "* ]]; then
 
 else
 	echo "[KevinDAK] Skipping Voltage Warning Removal"
+fi
+
+dialog --yes-label "Lets REBOOT!" --no-label "Let me do it manually" --stdout --yesno "KevinDAK has successfully installed! Although to apply all changes a reboot will be required, do you wish to reboot now?" 0 0
+cmd2=$?
+clear
+if [[ $cmd2 == *"0"* ]]; then
+	echo "[KevinDAK] INSTALL SUCCESSFULL"
+	echo "[KevinDAK] Rebooting computer in 5 seconds, to abort press ctrl+C"
+	sleep 5
+	reboot
+else
+	echo "[KevinDAK] Install was successfull, please reboot the machine when you are ready to make the magic happen"
 fi
