@@ -61,13 +61,25 @@ cmd=(dialog --stdout --title "Enter the WEB-URL" --inputbox "URL you want to con
 url=$("${cmd[@]}")
 clear
 
-echo "#!/bin/bash" &> /root/kevindak_start.sh
-echo "/usr/bin/chromium-browser --no-first-run --window-size=1920,1080 --noerrdialogs --start-fullscreen --start-maximized --disable-notifications --disable-infobars --kiosk --incognito "$url >> /root/kevindak_start.sh
+cd /
+mkdir kevin
+chmod 777 /kevin
+
+echo "#!/bin/bash" &> /kevin/kevindak_start.sh
+echo "/usr/bin/chromium-browser --no-first-run --window-size=1920,1080 --noerrdialogs --start-fullscreen --start-maximized --disable-notifications --disable-infobars --kiosk --incognito "$url >> /kevin/kevindak_start.sh
+chmod 777 /kevin/kevindak_start.sh
+
+echo #!/bin/sh
+echo "xset s off" &> /kevin/kevindak_init.sh
+echo "xset -dpms" >> /kevin/kevindak_init.sh
+echo "xset s noblank" >> /kevin/kevindak_init.sh
+echo "xinit /bin/su pi /kevin/kevindak_start.sh" >> /kevin/kevindak_init.sh
+chmod 777 /kevin/kevindak_init.sh
 
 if [[ $exitstatus == *" 3 "* ]]; then
 	echo "[KevinDAK] Setting up install script reference (rc.local)"
 	rcfile=$(cat /etc/rc.local)
-	if [[ $rcfile == *"/bin/sh /root/kevindak_start.sh"* ]]; then
+	if [[ $rcfile == *"/bin/sh /kevin/kevindak_init.sh"* ]]; then
 		echo "[KevinDAK] Already setup startup script found, not interfering"
 	else
 		tail -n 1 "/etc/rc.local" | wc -c | xargs -I {} truncate "/etc/rc.local" -s -{}
@@ -76,7 +88,7 @@ if [[ $exitstatus == *" 3 "* ]]; then
 			tail -n 1 "/etc/rc.local" | wc -c | xargs -I {} truncate "/etc/rc.local" -s -{}
 			rcfile=$(cat /etc/rc.local)
 		done
-		echo "/bin/sh /root/kevindak_start.sh" >> /etc/rc.local
+		echo "/bin/sh /kevin/kevindak_init.sh" >> /etc/rc.local
 		echo "exit 0" >> /etc/rc.local
 	fi
 else
