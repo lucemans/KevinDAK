@@ -1,4 +1,5 @@
 #!/bin/bash
+# sudo apt-get --no-install-recommends install xserver-xorg xserver-xorg-video-fbdev xinit pciutils xinput xfonts-100dpi xfonts-75dpi xfonts-scalable
 
 clear
 echo "=========="
